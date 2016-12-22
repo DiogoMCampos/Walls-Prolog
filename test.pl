@@ -1,6 +1,5 @@
 :-use_module(library(clpfd)).
 
-
 board([[o, o, o, o, o, o, o, o, o],
     [o, o, o, o, o, o, o, o, o],
     [o, o, o, o, o, o, o, o, o],
@@ -9,11 +8,14 @@ board([[o, o, o, o, o, o, o, o, o],
     [o, o, o, o, o, o, o, o, o],
     [o, o, o, o, o, o, o, o, o],
     [o, o, o, o, o, o, o, o, o],
-        [o, o, o, o, o, o, o, o, o]]).
+    [o, o, o, o, o, o, o, o, o]]).
 
+draw:-  board(X), displayBoard(X, 9).
 
-
-draw:-board(X), displayBoard(X, 9).
+translate(o) :- write(' ').
+translate(v) :- write('|').
+translate(h) :- write('-').
+translate(X) :- write(X).
 
 displayCol([]) :- nl.
 displayCol([X|Xs]) :-
@@ -25,11 +27,10 @@ displayCol([X|Xs]) :-
 displayLine([]) :-
     write(' | '),
     nl.
+
 displayLine([X|Xs]) :-
     write(' | '),
-    (X == 0,
-    write(' ');
-    write(X)),
+    translate(X),
     displayLine(Xs).
 
 displaySeparator(0) :- write('+').
@@ -42,6 +43,7 @@ displayBoard([], N) :-
     write('   '),
     displaySeparator(N),
     nl.
+
 displayBoard([L|Ls], N) :-
     write('   '),
     displaySeparator(N),
