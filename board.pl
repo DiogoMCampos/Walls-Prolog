@@ -1,30 +1,29 @@
 :-use_module(library(clpfd)).
 :-use_module(library(lists)).
 
-boardTest([[0, o, o, 3, o],
-            [o, o, 4, o, 3],
-            [o, o, o, 1, o],
-            [o, 2, o, 0, o],
-            [2, o, o, o, o]]).
+boardTest([[0, _, _, 3, _],
+            [_, _, 4, _, 3],
+            [_, _, _, 1, _],
+            [_, 2, _, 0, _],
+            [2, _, _, _, _]]).
 
-board([[o, o, o, o, o, o, o, o, o],
-    [o, o, o, o, o, o, o, o, o],
-    [o, o, o, o, o, o, o, o, o],
-    [o, o, o, o, o, o, o, o, o],
-    [o, o, o, o, 4, o, o, o, o],
-    [o, o, o, o, o, o, o, o, o],
-    [o, o, o, o, o, o, o, o, o],
-    [o, o, o, o, o, o, o, o, o],
-    [o, o, o, o, o, o, o, o, o]]).
+board([[_, _, _, _, _, _, _, _, _],
+    [_, _, _, _, _, _, _, _, _],
+    [_, _, _, _, _, _, _, _, _],
+    [_, _, _, _, _, _, _, _, _],
+    [_, _, _, _, 4, _, _, _, _],
+    [_, _, _, _, _, _, _, _, _],
+    [_, _, _, _, _, _, _, _, _],
+    [_, _, _, _, _, _, _, _, _],
+    [_, _, _, _, _, _, _, _, _]]).
 
 draw :- board(X), displayBoard(X, 9).
 drawTest :- boardTest(X), displayBoard(X, 5).
 
-translate(o) :- write(' ').
+translate(X) :- integer(X), write(X).
+translate(X) :- write(' ').
 translate(v) :- write('|').
 translate(h) :- write('-').
-translate(X) :- write(X).
-
 
 displayLine([]) :-
     write(' | '),
@@ -54,15 +53,12 @@ displayBoard([L|Ls], N) :-
     displayLine(L),
     displayBoard(Ls, N).
 
-
-% nao funciona
-% suposto dar as coords dos numeros
 getPiece([], _, _, Ret, Ret).
 getPiece([X|Xs], Row, Line, Acc, Ret):-
     NewRow is Row + 1,
-    (X == o,
+    (var(X),
         getPiece(Xs, NewRow, Line, Acc, Ret)
-    ;   append(Acc, [Line-Row], Sum),
+    ;   append(Acc, [Line-Row-X], Sum),
         getPiece(Xs, NewRow, Line, Sum, Ret)).
 
 getCoords([], _, _, Ret, Ret).
@@ -73,8 +69,8 @@ getCoords([X|Xs], Row, Line, Acc, Ret):-
     getCoords(Xs, Row, NewLine, Sum, Ret).
 
 getAffectedDown([X|_], PR, Line, _-PR, Ret):-
-    ((X == o,
-        Ret = [Line-PR])
+    ((var(X),
+        Ret = [X])
     ;   Ret = -1).
 getAffectedDown([_|Xs], Row, Line, PL-PR, Ret):-
     NewRow is Row + 1,
@@ -90,8 +86,8 @@ getAffectedDownMain([X|Xs], Row, Line, PL-PR, Acc, Ret):-
     ;   Ret = Acc).
 
 getAffectedUp([X|_], PR, Line, _-PR, Ret):-
-    ((X == o,
-        Ret = [Line-PR])
+    ((var(X),
+        Ret = [X])
     ;   Ret = -1).
 getAffectedUp([_|Xs], Row, Line, PL-PR, Ret):-
     NewRow is Row + 1,
@@ -116,21 +112,21 @@ getAffectedLine([X|Xs], Row, Line, PL-PR, Left, Right, LfTotal, RtTotal):-
     (Row == PR,
         getAffectedLine(Xs, NewRow, Line, PL-PR, Left, Right, LfTotal, RtTotal)
     ;Row < PR,
-        (X == o,
-            append(Left, [Line-Row], Sum),
+        (var(X),
+            append(Left, [X], Sum),
             getAffectedLine(Xs, NewRow, Line, PL-PR, Sum, Right, LfTotal, RtTotal)
         ;   getAffectedLine(Xs, NewRow, Line, PL-PR, [], Right, LfTotal, RtTotal))
     ;Row > PR,
-        (X == o,
-            append(Right, [Line-Row], Sum),
+        (var(X),
+            append(Right, [X], Sum),
             getAffectedLine(Xs, NewRow, Line, PL-PR, Left, Sum, LfTotal, RtTotal)
         ;   LfTotal = Left, RtTotal = Right)).
 
 
-testGetSpaces :- boardTest(X), displayBoard(X, 5), getAffectedUpMain(X, 1, 1, 3-4, [], H), nl,write(H).
+testGetSpaces :- boardTest(X), displayBoard(X, 5), getAffectedUpMain(X, 1, 1, 3-4, [], H), nl, write(H).
 
-testLine :- boardTest([X,Y|Xs]), displayBoard([X,Y|Xs], 5), getAffectedLine(Y, 1, 2, 2-5, [], [], R, L), nl,write(R), nl, write(L).
+testLine :- boardTest([X,Y|Xs]), displayBoard([X,Y|Xs], 5), getAffectedLine(Y, 1, 2, 2-5, [], [], R, L), nl, write(R), nl, write(L).
 
-testB :- boardTest(X), displayBoard(X, 5), getAffectedUpMain(X, 1, 1, 4-2, [], H), nl,write(H).
+testB :- boardTest(X), displayBoard(X, 5), getAffectedUpMain(X, 1, 1, 4-2, [], H), nl, write(H).
 
 testA :- boardTest(X), displayBoard(X, 5), getCoords(X, 1, 1, [], H), nl, write(H).
