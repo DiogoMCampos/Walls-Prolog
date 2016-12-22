@@ -56,20 +56,21 @@ displayBoard([L|Ls], N) :-
 
 % nao funciona
 % suposto dar as coords dos numeros
-getPiece([], _, _, []).
-getPiece([X|Xs], Row, Line, [Pieces|Next]):-
+getPiece([], _, _, Ret, Ret).
+getPiece([X|Xs], Row, Line, Acc, Ret):-
     NewRow is Row + 1,
     (X == o,
-        getPiece(Xs, NewRow, Line, [Pieces|Next])
-    ;   Pieces = Line-Row,
-        getPiece(Xs, NewRow, Line, Next)).
+        getPiece(Xs, NewRow, Line, Acc, Ret)
+    ;   append(Acc, [Line-Row], Sum),
+        getPiece(Xs, NewRow, Line, Sum, Ret)).
 
-getCoords([], _, _, []).
-getCoords([X|Xs], Row, Line, [Total|Tots]):-
+getCoords([], _, _, Ret, Ret).
+getCoords([X|Xs], Row, Line, Acc, Ret):-
     NewLine is Line + 1,
-    getPiece(X, Row, Line, Total),
-    getCoords(Xs, Row, NewLine, Tots).
+    getPiece(X, Row, Line, [], Pieces),
+    append(Acc, Pieces, Sum),
+    getCoords(Xs, Row, NewLine, Sum, Ret).
 
 
 
-testA :- boardTest(X), displayBoard(X, 5), getCoords(X, 1, 1, H), nl, write('final'), nl, write(H).
+testA :- boardTest(X), displayBoard(X, 5), getCoords(X, 1, 1, [], H), nl, write(H).
