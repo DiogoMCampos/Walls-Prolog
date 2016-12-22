@@ -1,5 +1,11 @@
 :-use_module(library(clpfd)).
 
+boardTest([[0, o, o, 3, o],
+      [o, o, 4, o, 3],
+      [o, o, o, 1, o],
+      [o, 2, o, 0, o],
+      [2, o, o, o, o]]).
+
 board([[o, o, o, o, o, o, o, o, o],
     [o, o, o, o, o, o, o, o, o],
     [o, o, o, o, o, o, o, o, o],
@@ -10,7 +16,8 @@ board([[o, o, o, o, o, o, o, o, o],
     [o, o, o, o, o, o, o, o, o],
     [o, o, o, o, o, o, o, o, o]]).
 
-draw:-  board(X), displayBoard(X, 9).
+draw :- board(X), displayBoard(X, 9).
+drawTest :- boardTest(X), displayBoard(X, 5).
 
 translate(o) :- write(' ').
 translate(v) :- write('|').
