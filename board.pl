@@ -80,7 +80,10 @@ getAffectedUp([_|Xs], Row, Line, PL-PR, Ret):-
     NewRow is Row + 1,
     getAffectedUp(Xs, NewRow, Line, PL-PR, Ret).
 
-getAffectedUpMain(_, _, PL, PL-_, Ret, Ret).
+getAffectedUpMain([X|Xs], Row, PL, PL-PR, Up, Total):-
+    % getAffectedLine(),
+    NewLine is PL + 1.
+    % getAffectedDown().
 getAffectedUpMain([X|Xs], Row, Line, PL-PR, Acc, Ret):-
     NewLine is Line + 1,
     getAffectedUp(X, 1, Line, PL-PR, List),
@@ -89,6 +92,22 @@ getAffectedUpMain([X|Xs], Row, Line, PL-PR, Acc, Ret):-
         getAffectedUpMain(Xs, Row, NewLine, PL-PR, Sum, Ret)
     ;   getAffectedUpMain(Xs, Row, NewLine, PL-PR, [], Ret)).
 
+getAffectedLine([], _, _, _-_, Left, Right, Left, Right).
+getAffectedLine([X|Xs], Row, Line, PL-PR, Left, Right, LfTotal, RtTotal):-
+    NewRow is Row + 1,
+    (Row == PR,
+        getAffectedLine(Xs, NewRow, Line, PL-PR, Left, Right, LfTotal, RtTotal)
+    ;Row < PR,
+        (X == o,
+            append(Left, [Line-Row], Sum),
+            getAffectedLine(Xs, NewRow, Line, PL-PR, Sum, Right, LfTotal, RtTotal)
+        ;   getAffectedLine(Xs, NewRow, Line, PL-PR, [], Right, LfTotal, RtTotal))
+    ;Row > PR,
+        (X == o,
+            append(Right, [Line-Row], Sum),
+            getAffectedLine(Xs, NewRow, Line, PL-PR, Left, Sum, LfTotal, RtTotal)
+        ;   LfTotal = Left, RtTotal = Right)).
+
 getAffectedBoard([X|Xs], Row, Line, PL-PR, [Lists|Next]):-
     NewLine is Line + 1,
     (Line < PL,
@@ -96,6 +115,7 @@ getAffectedBoard([X|Xs], Row, Line, PL-PR, [Lists|Next]):-
     ;Line == PL,
         get).
 
+testLine :- boardTest([X,Y|Xs]), displayBoard([X,Y|Xs], 5), getAffectedLine(Y, 1, 2, 2-5, [], [], R, L), nl,write(R), nl, write(L).
 
 testB :- boardTest(X), displayBoard(X, 5), getAffectedUpMain(X, 1, 1, 4-2, [], H), nl,write(H).
 
