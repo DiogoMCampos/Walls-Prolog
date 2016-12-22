@@ -72,5 +72,31 @@ getCoords([X|Xs], Row, Line, Acc, Ret):-
     getCoords(Xs, Row, NewLine, Sum, Ret).
 
 
+getAffectedUp([X|_], PR, Line, _-PR, Ret):-
+    ((X == o,
+        Ret = [Line-PR])
+    ;   Ret = -1).
+getAffectedUp([_|Xs], Row, Line, PL-PR, Ret):-
+    NewRow is Row + 1,
+    getAffectedUp(Xs, NewRow, Line, PL-PR, Ret).
+
+getAffectedUpMain(_, _, PL, PL-_, Ret, Ret).
+getAffectedUpMain([X|Xs], Row, Line, PL-PR, Acc, Ret):-
+    NewLine is Line + 1,
+    getAffectedUp(X, 1, Line, PL-PR, List),
+    (is_list(List),
+        append(Acc, List, Sum),
+        getAffectedUpMain(Xs, Row, NewLine, PL-PR, Sum, Ret)
+    ;   getAffectedUpMain(Xs, Row, NewLine, PL-PR, [], Ret)).
+
+getAffectedBoard([X|Xs], Row, Line, PL-PR, [Lists|Next]):-
+    NewLine is Line + 1,
+    (Line < PL,
+        getAffectedUp(X, Row, Line, PL-PR, Ret)
+    ;Line == PL,
+        get).
+
+
+testB :- boardTest(X), displayBoard(X, 5), getAffectedUpMain(X, 1, 1, 4-2, [], H), nl,write(H).
 
 testA :- boardTest(X), displayBoard(X, 5), getCoords(X, 1, 1, [], H), nl, write(H).
