@@ -1,4 +1,5 @@
 :-use_module(library(clpfd)).
+:-use_module(library(lists)).
 
 boardTest([[0, o, o, 3, o],
             [o, o, 4, o, 3],
@@ -71,6 +72,22 @@ getCoords([X|Xs], Row, Line, Acc, Ret):-
     append(Acc, Pieces, Sum),
     getCoords(Xs, Row, NewLine, Sum, Ret).
 
+getAffectedDown([X|_], PR, Line, _-PR, Ret):-
+    ((X == o,
+        Ret = [Line-PR])
+    ;   Ret = -1).
+getAffectedDown([_|Xs], Row, Line, PL-PR, Ret):-
+    NewRow is Row + 1,
+    getAffectedDown(Xs, NewRow, Line, PL-PR, Ret).
+
+getAffectedDownMain([], _, _, _-_, Ret, Ret).
+getAffectedDownMain([X|Xs], Row, Line, PL-PR, Acc, Ret):-
+    NewLine is Line + 1,
+    getAffectedDown(X, 1, Line, PL-PR, List),
+    (is_list(List),
+        append(Acc, List, Sum),
+        getAffectedDownMain(Xs, Row, NewLine, PL-PR, Sum, Ret)
+    ;   Ret = Acc).
 
 getAffectedUp([X|_], PR, Line, _-PR, Ret):-
     ((X == o,
@@ -81,9 +98,10 @@ getAffectedUp([_|Xs], Row, Line, PL-PR, Ret):-
     getAffectedUp(Xs, NewRow, Line, PL-PR, Ret).
 
 getAffectedUpMain([X|Xs], Row, PL, PL-PR, Up, Total):-
-    % getAffectedLine(),
-    NewLine is PL + 1.
-    % getAffectedDown().
+    getAffectedLine(X, Row, PL, PL-PR, [], [], Left, Right),
+    NewLine is PL + 1,
+    getAffectedDownMain(Xs, Row, NewLine, PL-PR, [], Down),
+    Total = [Up, Left, Right, Down].
 getAffectedUpMain([X|Xs], Row, Line, PL-PR, Acc, Ret):-
     NewLine is Line + 1,
     getAffectedUp(X, 1, Line, PL-PR, List),
@@ -108,12 +126,8 @@ getAffectedLine([X|Xs], Row, Line, PL-PR, Left, Right, LfTotal, RtTotal):-
             getAffectedLine(Xs, NewRow, Line, PL-PR, Left, Sum, LfTotal, RtTotal)
         ;   LfTotal = Left, RtTotal = Right)).
 
-getAffectedBoard([X|Xs], Row, Line, PL-PR, [Lists|Next]):-
-    NewLine is Line + 1,
-    (Line < PL,
-        getAffectedUp(X, Row, Line, PL-PR, Ret)
-    ;Line == PL,
-        get).
+
+testGetSpaces :- boardTest(X), displayBoard(X, 5), getAffectedUpMain(X, 1, 1, 3-4, [], H), nl,write(H).
 
 testLine :- boardTest([X,Y|Xs]), displayBoard([X,Y|Xs], 5), getAffectedLine(Y, 1, 2, 2-5, [], [], R, L), nl,write(R), nl, write(L).
 
