@@ -1,8 +1,7 @@
 :- use_module(library(random)).
-:- use_module(library(timeout)).
 :- use_module(library(between)).
 
-:-include('board.pl').
+:-include('walls.pl').
 
 createRow(0, []).
 createRow(N, [_|Rest]) :-
