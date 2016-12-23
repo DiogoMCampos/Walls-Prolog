@@ -1,29 +1,19 @@
 :-use_module(library(clpfd)).
 :-use_module(library(lists)).
 
-boardTest([[n(0), _, _, n(3), _],
-            [_, _, n(4), _, n(3)],
-            [_, _, _, n(1), _],
-            [_, n(2), _, n(0), _],
-            [n(2), _, _, _, _]]).
+:-include('examples.pl').
 
-board([[_, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _],
-    [_, _, _, _, 4, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _],
-    [_, _, _, _, _, _, _, _, _]]).
 
-draw :- board(X), displayBoard(X, 9).
-drawTest :- boardTest(X), displayBoard(X, 5).
+
+
 
 translate(X) :- var(X), write(' ').
 translate(n(X)) :- write(X).
 translate(1) :- write('|').
 translate(0) :- write('-').
+
+getWidth([X|_], Size):-
+    length(X, Size).
 
 getValue(n(X), X).
 
@@ -41,17 +31,21 @@ displaySeparator(N) :-
     write('+---'),
     displaySeparator(N1).
 
-displayBoard([], N) :-
+displayBoard([], Width) :-
     write('   '),
-    displaySeparator(N),
+    displaySeparator(Width),
     nl.
-displayBoard([L|Ls], N) :-
+displayBoard([L|Ls], Width) :-
     write('   '),
-    displaySeparator(N),
+    displaySeparator(Width),
     nl,
     write('  '),
     displayLine(L),
-    displayBoard(Ls, N).
+    displayBoard(Ls, Width).
+
+viewBoard(Board):-
+    getWidth(Board, Size),
+    displayBoard(Board, Size).
 
 getPiece([], _, _, Ret, Ret).
 getPiece([X|Xs], Row, Line, Acc, Ret):-
@@ -116,9 +110,9 @@ getAffectedLine([X|Xs], Row, PR, Left, Right, LfTotal, RtTotal):-
         getAffectedLine(Xs, NewRow, PR, Left, Sum, LfTotal, RtTotal)
     ;   LfTotal = Left, RtTotal = Right).
 
-restrict([], _,_,0).
+restrict([], _, _, 0).
 restrict([Square|Next], Expect, Acc, Total):-
-    Expect #= Square #/\ Acc #<=> Algo,
+    Square #= Expect #/\ Acc #<=> Algo,
     Total #= Rest + Algo,
     restrict(Next, Expect, Algo, Rest).
 
@@ -136,14 +130,14 @@ listAllAffected(Board):-
     getCoords(Board, 1, 1, [], AllNumbers),
     maplist(constrainAll(Board), AllNumbers).
 
-puzzle:-
-    boardTest(X),
+puzzle(N):-
+    board(N, X),
     append(X, V),
     include(var, V, Vars),
     domain(Vars, 0, 1),
     listAllAffected(X),
     labeling([], Vars),
-    displayBoard(X, 5),nl.
+    viewBoard(X),nl.
 
 testGetSpaces :- boardTest(X), displayBoard(X, 5), getAffectedUpMain(X, 1, 1, 3-4, [], H), nl, write(H).
 
