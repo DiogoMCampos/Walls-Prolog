@@ -5,8 +5,6 @@
 
 
 
-
-
 translate(X) :- var(X), write(' ').
 translate(n(X)) :- write(X).
 translate(1) :- write('|').
@@ -138,8 +136,17 @@ puzzle(N):-
     include(var, V, Vars),
     domain(Vars, 0, 1),
     listAllAffected(X),
+    reset_timer,
     labeling([], Vars),
-    viewBoard(X),nl.
+    viewBoard(X),nl,
+    print_time,
+    fd_statistics.
+
+reset_timer :- statistics(walltime,_).
+print_time :-
+	statistics(walltime,[_,T]),
+	TS is ((T//10)*10)/1000,
+	nl, write('Time: '), write(TS), write('s'), nl, nl.
 
 testGetSpaces :- boardTest(X), displayBoard(X, 5), getAffectedUpMain(X, 1, 1, 3-4, [], H), nl, write(H).
 
