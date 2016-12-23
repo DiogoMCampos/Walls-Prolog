@@ -20,10 +20,12 @@ board([[_, _, _, _, _, _, _, _, _],
 draw :- board(X), displayBoard(X, 9).
 drawTest :- boardTest(X), displayBoard(X, 5).
 
+translate(0) :- write('|').
+translate(1) :- write('-').
 translate(X) :- integer(X), write(X).
-translate(X) :- write(' ').
-translate(v) :- write('|').
-translate(h) :- write('-').
+translate(_) :- write(' ').
+
+
 
 displayLine([]) :-
     write(' | '),
@@ -96,8 +98,10 @@ getAffectedUp([_|Xs], Row, Line, PL-PR, Ret):-
 getAffectedUpMain([X|Xs], Row, PL, PL-PR, Up, Total):-
     getAffectedLine(X, Row, PL, PL-PR, [], [], Left, Right),
     NewLine is PL + 1,
+    reverse(Up, ReverseUp),
+    reverse(Left, ReverseLeft),
     getAffectedDownMain(Xs, Row, NewLine, PL-PR, [], Down),
-    Total = [Up, Left, Right, Down].
+    Total = [ReverseUp, ReverseLeft, Right, Down].
 getAffectedUpMain([X|Xs], Row, Line, PL-PR, Acc, Ret):-
     NewLine is Line + 1,
     getAffectedUp(X, 1, Line, PL-PR, List),
@@ -122,6 +126,34 @@ getAffectedLine([X|Xs], Row, Line, PL-PR, Left, Right, LfTotal, RtTotal):-
             getAffectedLine(Xs, NewRow, Line, PL-PR, Left, Sum, LfTotal, RtTotal)
         ;   LfTotal = Left, RtTotal = Right)).
 
+restrict([], _,_,0).
+restrict([Square|Next], Expect, Acc, Total):-
+    Square #= Expect,
+    Total #= Rest + Algo,
+    restrict(Next, Expect, Algo, Rest).
+
+% pega as casas e aplica restricoes
+constrainAll(Board, Line-Row-Value):-
+    getAffectedUpMain(Board, 1, 1, Line-Row, [], [Up, Down, Left, Right]),
+    restrict(Up, 0, 0, TotalUp),
+    restrict(Left, 1, 0, TotalLeft),
+    restrict(Right, 1, 0, TotalRight),
+    restrict(Down, 0, 0, TotalDown),
+    Value #= TotalUp + TotalLeft + TotalRight + TotalDown.
+
+
+listAllAffected(Board):-
+    getCoords(Board, 1, 1, [], AllNumbers),
+    maplist(constrainAll(Board), AllNumbers).
+
+
+puzzle:-
+    boardTest(X),
+    include(var, X, Vars),
+    domain(Vars, 0, 1),
+    listAllAffected(X),
+    labeling([], Vars),
+    displayBoard(X, 5).
 
 testGetSpaces :- boardTest(X), displayBoard(X, 5), getAffectedUpMain(X, 1, 1, 3-4, [], H), nl, write(H).
 
