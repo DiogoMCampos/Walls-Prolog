@@ -67,27 +67,27 @@ getAffectedVert([_|Xs], Row, PR, Ret):-
     NewRow is Row + 1,
     getAffectedVert(Xs, NewRow, PR, Ret).
 
-getAffectedDownMain([], _, _, _-_, Ret, Ret).
-getAffectedDownMain([X|Xs], Row, Line, PL-PR, Acc, Ret):-
+getAffectedDownMain([], _, _-_, Ret, Ret).
+getAffectedDownMain([X|Xs], Line, PL-PR, Acc, Ret):-
     NewLine is Line + 1,
     (getAffectedVert(X, 1, PR, List),
         append(Acc, List, Sum),
-        getAffectedDownMain(Xs, Row, NewLine, PL-PR, Sum, Ret)
+        getAffectedDownMain(Xs, NewLine, PL-PR, Sum, Ret)
     ;   Ret = Acc).
 
-getAffectedUpMain([X|Xs], Row, PL, PL-PR, Up, Total):-
-    getAffectedLine(X, Row, PR, [], [], Left, Right),
+getAffectedUpMain([X|Xs], PL, PL-PR, Up, Total):-
+    getAffectedLine(X, 1, PR, [], [], Left, Right),
     NewLine is PL + 1,
     reverse(Up, ReverseUp),
     reverse(Left, ReverseLeft),
-    getAffectedDownMain(Xs, Row, NewLine, PL-PR, [], Down),
+    getAffectedDownMain(Xs, NewLine, PL-PR, [], Down),
     Total = [ReverseUp, ReverseLeft, Right, Down].
-getAffectedUpMain([X|Xs], Row, Line, PL-PR, Acc, Ret):-
+getAffectedUpMain([X|Xs], Line, PL-PR, Acc, Ret):-
     NewLine is Line + 1,
     (getAffectedVert(X, 1, PR, List),
         append(Acc, List, Sum),
-        getAffectedUpMain(Xs, Row, NewLine, PL-PR, Sum, Ret)
-    ;   getAffectedUpMain(Xs, Row, NewLine, PL-PR, [], Ret)).
+        getAffectedUpMain(Xs, NewLine, PL-PR, Sum, Ret)
+    ;   getAffectedUpMain(Xs, NewLine, PL-PR, [], Ret)).
 
 getAffectedLine([], _, _, Left, Right, Left, Right).
 getAffectedLine([_|Xs], PR, PR, Left, Right, LfTotal, RtTotal):-
@@ -119,7 +119,7 @@ restrict(Affected, Expected, Other, Total) :-
 
 % pega as casas e aplica restricoes
 constrainAll(Board, Line-Row-Value):-
-    getAffectedUpMain(Board, 1, 1, Line-Row, [], [Up, Left, Right, Down]),
+    getAffectedUpMain(Board, 1, Line-Row, [], [Up, Left, Right, Down]),
     restrict(Up, 1, 0, TotalUp),
     restrict(Left, 0, 1, TotalLeft),
     restrict(Right, 0, 1, TotalRight),
