@@ -110,21 +110,23 @@ getAffectedLine([X|Xs], Row, PR, Left, Right, LfTotal, RtTotal):-
         getAffectedLine(Xs, NewRow, PR, Left, Sum, LfTotal, RtTotal)
     ;   LfTotal = Left, RtTotal = Right).
 
-restrict([], _, _, 0).
-restrict([Square|Next], Expect, Acc, Total):-
-    Square #= Expect #/\ Acc #<=> Algo,
-    Total #= Rest + Algo,
-    restrict(Next, Expect, Algo, Rest).
+restrict(Affected, Expected, Other, Total) :-
+    automaton(Affected, _, Affected,
+          [source(s), sink(s), sink(f)],
+          [arc(s, Expected, s, [Count + 1]),
+           arc(s, Other, f),
+           arc(f, Expected, f),
+           arc(f, Other, f)],
+           [Count], [0], [Total]).
 
 % pega as casas e aplica restricoes
 constrainAll(Board, Line-Row-Value):-
     getAffectedUpMain(Board, 1, 1, Line-Row, [], [Up, Left, Right, Down]),
-    restrict(Up, 1, 1, TotalUp),
+    restrict(Up, 1, 0, TotalUp),
     restrict(Left, 0, 1, TotalLeft),
     restrict(Right, 0, 1, TotalRight),
-    restrict(Down, 1, 1, TotalDown),
+    restrict(Down, 1, 0, TotalDown),
     Value #= TotalUp + TotalLeft + TotalRight + TotalDown.
-
 
 listAllAffected(Board):-
     getCoords(Board, 1, 1, [], AllNumbers),
