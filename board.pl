@@ -69,28 +69,22 @@ getCoords([X|Xs], Row, Line, Acc, Ret):-
     append(Acc, Pieces, Sum),
     getCoords(Xs, Row, NewLine, Sum, Ret).
 
-getAffectedDown([X|_], PR, Line, _-PR, [X]):-var(X);integer(X).
-getAffectedDown([_|Xs], Row, Line, PL-PR, Ret):-
-    Row =\=PR,
+getAffectedVert([X|_], PR, PR, [X]):-var(X);integer(X).
+getAffectedVert([_|Xs], Row, PR, Ret):-
+    Row =\= PR,
     NewRow is Row + 1,
-    getAffectedDown(Xs, NewRow, Line, PL-PR, Ret).
+    getAffectedVert(Xs, NewRow, PR, Ret).
 
 getAffectedDownMain([], _, _, _-_, Ret, Ret).
 getAffectedDownMain([X|Xs], Row, Line, PL-PR, Acc, Ret):-
     NewLine is Line + 1,
-    (getAffectedDown(X, 1, Line, PL-PR, List),
+    (getAffectedVert(X, 1, PR, List),
         append(Acc, List, Sum),
         getAffectedDownMain(Xs, Row, NewLine, PL-PR, Sum, Ret)
     ;   Ret = Acc).
 
-getAffectedUp([X|_], PR, Line, _-PR, [X]):- var(X);integer(X).
-getAffectedUp([_|Xs], Row, Line, PL-PR, Ret):-
-    Row =\= PR,
-    NewRow is Row + 1,
-    getAffectedUp(Xs, NewRow, Line, PL-PR, Ret).
-
 getAffectedUpMain([X|Xs], Row, PL, PL-PR, Up, Total):-
-    getAffectedLine(X, Row, PL, PL-PR, [], [], Left, Right),
+    getAffectedLine(X, Row, PR, [], [], Left, Right),
     NewLine is PL + 1,
     reverse(Up, ReverseUp),
     reverse(Left, ReverseLeft),
@@ -98,31 +92,29 @@ getAffectedUpMain([X|Xs], Row, PL, PL-PR, Up, Total):-
     Total = [ReverseUp, ReverseLeft, Right, Down].
 getAffectedUpMain([X|Xs], Row, Line, PL-PR, Acc, Ret):-
     NewLine is Line + 1,
-    (getAffectedUp(X, 1, Line, PL-PR, List),
+    (getAffectedVert(X, 1, PR, List),
         append(Acc, List, Sum),
         getAffectedUpMain(Xs, Row, NewLine, PL-PR, Sum, Ret)
     ;   getAffectedUpMain(Xs, Row, NewLine, PL-PR, [], Ret)).
 
-getAffectedLine([], _, _, _-_, Left, Right, Left, Right).
-getAffectedLine([X|Xs], PR, PL, PL-PR, Left, Right, LfTotal, RtTotal):-
+getAffectedLine([], _, _, Left, Right, Left, Right).
+getAffectedLine([_|Xs], PR, PR, Left, Right, LfTotal, RtTotal):-
     NewRow is PR + 1,
-    getAffectedLine(Xs, NewRow, PL, PL-PR, Left, Right, LfTotal, RtTotal).
-getAffectedLine([X|Xs], Row, Line, PL-PR, Left, Right, LfTotal, RtTotal):-
+    getAffectedLine(Xs, NewRow, PR, Left, Right, LfTotal, RtTotal).
+getAffectedLine([X|Xs], Row, PR, Left, Right, LfTotal, RtTotal):-
     Row < PR,
     NewRow is Row + 1,
-    ((var(X);
-    integer(X)),
+    ((var(X); integer(X)),
         append(Left, [X], Sum),
-        getAffectedLine(Xs, NewRow, Line, PL-PR, Sum, Right, LfTotal, RtTotal)
-    ;   getAffectedLine(Xs, NewRow, Line, PL-PR, [], Right, LfTotal, RtTotal)).
-getAffectedLine([X|Xs], Row, Line, PL-PR, Left, Right, LfTotal, RtTotal):-
+        getAffectedLine(Xs, NewRow, PR, Sum, Right, LfTotal, RtTotal)
+    ;   getAffectedLine(Xs, NewRow, PR, [], Right, LfTotal, RtTotal)).
+getAffectedLine([X|Xs], Row, PR, Left, Right, LfTotal, RtTotal):-
     NewRow is Row + 1,
     Row > PR,
-    ((var(X)
-    ;integer(X)),
+    ((var(X); integer(X)),
         append(Right, [X], Sum),
-        getAffectedLine(Xs, NewRow, Line, PL-PR, Left, Sum, LfTotal, RtTotal)
-    ;   LfTotal = Left, RtTotal = Right1).
+        getAffectedLine(Xs, NewRow, PR, Left, Sum, LfTotal, RtTotal)
+    ;   LfTotal = Left, RtTotal = Right).
 
 restrict([], _,_,0).
 restrict([Square|Next], Expect, Acc, Total):-
@@ -132,8 +124,7 @@ restrict([Square|Next], Expect, Acc, Total):-
 
 % pega as casas e aplica restricoes
 constrainAll(Board, Line-Row-Value):-
-    write(Line-Row-Value),nl,
-    getAffectedUpMain(Board, 1, 1, Line-Row, [], [Up, Left, Right, Down]),!,
+    getAffectedUpMain(Board, 1, 1, Line-Row, [], [Up, Left, Right, Down]),
     restrict(Up, 1, 1, TotalUp),
     restrict(Left, 0, 1, TotalLeft),
     restrict(Right, 0, 1, TotalRight),
@@ -143,7 +134,6 @@ constrainAll(Board, Line-Row-Value):-
 
 listAllAffected(Board):-
     getCoords(Board, 1, 1, [], AllNumbers),
-    write(AllNumbers),nl,
     maplist(constrainAll(Board), AllNumbers).
 
 puzzle:-
